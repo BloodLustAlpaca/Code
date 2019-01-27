@@ -21,21 +21,37 @@ def main():
     dfGender = pd.get_dummies(df['GENDER'])
     dfParty = pd.get_dummies(df['PARTY'])
     df = pd.concat([df, dfGender], axis=1, sort=False)
+    dfCorr = pd.concat([dfGender,dfParty], axis = 1, sort = False)
     
-    #tf = pd.concat([df,dfGender, dfParty], axis=1, sort=False)
-
-    print(df.columns)
-    fDemIndex = df[(df['GENDER'] == 'Female') & (df['PARTY'] == 'DEM')].index
     
-    #Searches for the index of the female dems and their precincts
-    fDem = df.loc[fDemIndex, 'PRECINCT']
-
+    writeHeatmap(dfCorr)
+    
+    
+    #Searches for the index of the female dems another argument would show a specified column or set of columns
+    fDem = df.loc[df[(df['GENDER'] == 'Female') & (df['PARTY'] == 'DEM')].index]
+    fRep = df.loc[df[(df['GENDER'] == 'Female') & (df['PARTY'] == 'REP')].index]
+    mDem = df.loc[df[(df['GENDER'] == 'Male') & (df['PARTY'] == 'DEM')].index]
+    mRep = df.loc[df[(df['GENDER'] == 'Male') & (df['PARTY'] == 'REP')].index]
+    uRep = df.loc[df[(df['GENDER'] == 'Unknown') & (df['PARTY'] == 'REP')].index]
+    uDem = df.loc[df[(df['GENDER'] == 'Unknown') & (df['PARTY'] == 'DEM')].index]
+    tMale= len(mRep)+len(mDem)
+    tFem = len(fDem) + len(fRep)
+    tUnk = len(uDem) + len(uRep)
+    pMaleRep = len(mRep)/tMale
+    pMaleDem = len(mDem)/tMale
+    pFemRep = len(fRep)/tFem
+    pFemDem = len(fDem)/tFem
+    pUnkRep = len(uRep)/tUnk
+    pUnkDem = len(uDem)/tUnk
+    
+    
     # this function uses a non-standard python library which I manually
     # installed from: https://pypi.org/project/ethnicolr/#description
     # Let me know if you can't figure out how to install from a
     # zip file.  You can comment out this line until you get it installed
     # This is just an example file anyway right?
     # 
+    #correlation of party and sex
     df = addEthnicityFields(df,'LAST_NAME')
 
     writeHeatmap(df)
@@ -90,8 +106,9 @@ def writeHeatmap(df, pngFilename='heatmap.png'):
 
     # Generate a custom diverging color map
     steps = 50
-    colormap = sns.color_palette("cubehelix", steps)
-    ax = sns.heatmap(corr, cmap=colormap)
+    #cubehelix is original
+    colormap = sns.color_palette("Blues", steps)
+    ax = sns.heatmap(corr, cmap=colormap, annot = True)
     
     
 
