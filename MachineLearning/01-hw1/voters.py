@@ -1,6 +1,8 @@
 import pandas as pd 
 import numpy as np
-
+#
+#Homework is at the end of the main method
+#
 def main():
     args = getArgs()
 
@@ -24,7 +26,7 @@ def main():
     dfCorr = pd.concat([dfGender,dfParty], axis = 1, sort = False)
     
     
-    writeHeatmap(dfCorr)
+#    writeHeatmap(dfCorr)
     
     
     #Searches for the index of the female dems another argument would show a specified column or set of columns
@@ -34,15 +36,7 @@ def main():
     mRep = df.loc[df[(df['GENDER'] == 'Male') & (df['PARTY'] == 'REP')].index]
     uRep = df.loc[df[(df['GENDER'] == 'Unknown') & (df['PARTY'] == 'REP')].index]
     uDem = df.loc[df[(df['GENDER'] == 'Unknown') & (df['PARTY'] == 'DEM')].index]
-    tMale= len(mRep)+len(mDem)
-    tFem = len(fDem) + len(fRep)
-    tUnk = len(uDem) + len(uRep)
-    pMaleRep = len(mRep)/tMale
-    pMaleDem = len(mDem)/tMale
-    pFemRep = len(fRep)/tFem
-    pFemDem = len(fDem)/tFem
-    pUnkRep = len(uRep)/tUnk
-    pUnkDem = len(uDem)/tUnk
+
     
     
     # this function uses a non-standard python library which I manually
@@ -52,11 +46,107 @@ def main():
     # This is just an example file anyway right?
     # 
     #correlation of party and sex
+
     df = addEthnicityFields(df,'LAST_NAME')
-
-    writeHeatmap(df)
-
-
+#    writeHeatmap(df)
+    
+    
+    ##################################################################
+    #HOMEWORK
+    ##################################################################
+    #1.
+    ##This adds a new column
+    print("\n#################################################################\nProblem 1. \n")
+    addColumn(df,"NewColumn", 0)
+    print(df.columns[-1])
+    
+    #changes the value to 1
+    df.NewColumn = 1
+    print(df['NewColumn'][0])
+    #renames column
+    df=df.rename(columns={'NewColumn' : 'NewerColumn'})
+    print(df.columns[-1])
+    
+    ##This Drops a column
+    df = df.drop(columns = "NewerColumn")
+    print(df.columns[-1])
+    #################################################################
+    #2.
+    print("\nProblem 2. \n")
+    #random sample size 3
+    sample = df.sample(n=3)
+    print(sample)
+    
+    #################################################################
+    #3.
+    print("\nProblem 3. \n")
+    #to csv
+    sample.to_csv(path_or_buf="test.csv")
+    #delete
+    sample = None
+    print(sample)
+    #read in csv
+    sample = pd.read_csv(filepath_or_buffer="test.csv")
+    print(sample)
+    #read from zip
+    csvZip = pd.read_csv("coloradovoters.1000.csv.zip", compression='infer', encoding = "ISO-8859-1", low_memory=False)
+    print(csvZip.sample(n=5))
+    #################################################################
+    #4.
+    print("\nProblem 4. \n")
+    arr = [1,2,4,8]
+    print(type(arr))
+    #to nparray
+    narr = np.asarray(arr)
+    print(narr)
+    print(type(narr))
+    #nparray to list
+    anarr = np.ndarray.tolist(narr)
+    print(type(anarr))
+    #################################################################
+    #5.
+    print("\nProblem 5. \n")
+    sample["Cat"] = sample["VOTER_ID"].astype('category')
+    print(sample["Cat"])
+    #################################################################
+    #6.
+    print("\nProblem 6. \n")
+    #one-hot
+    sample=pd.get_dummies(sample)
+    print(sample)
+    #################################################################
+    #7.
+    print("\nProblem 7. \n")
+    #these are from above and how I get the heatmap and stats
+#    dfCorr = pd.concat([dfGender,dfParty], axis = 1, sort = False)
+#    fDem = df.loc[df[(df['GENDER'] == 'Female') & (df['PARTY'] == 'DEM')].index]
+#    fRep = df.loc[df[(df['GENDER'] == 'Female') & (df['PARTY'] == 'REP')].index]
+#    mDem = df.loc[df[(df['GENDER'] == 'Male') & (df['PARTY'] == 'DEM')].index]
+#    mRep = df.loc[df[(df['GENDER'] == 'Male') & (df['PARTY'] == 'REP')].index]
+#    uRep = df.loc[df[(df['GENDER'] == 'Unknown') & (df['PARTY'] == 'REP')].index]
+#    uDem = df.loc[df[(df['GENDER'] == 'Unknown') & (df['PARTY'] == 'DEM')].index]
+    writeHeatmap(dfCorr)
+    #################################################################
+    #8
+    #I eliminated other parties for the stats and just look at republican and dem with male female and unknown
+    tMale= len(mRep)+len(mDem)
+    tFem = len(fDem) + len(fRep)
+    tUnk = len(uDem) + len(uRep)
+    pMaleRep = len(mRep)/tMale
+    pMaleDem = len(mDem)/tMale
+    pFemRep = len(fRep)/tFem
+    pFemDem = len(fDem)/tFem
+    pUnkRep = len(uRep)/tUnk
+    pUnkDem = len(uDem)/tUnk
+    print("Total Males: " +str(tMale) + "\nTotal Females: " +str(tFem) + "\nTotal Unknowns: " + str(tUnk))
+    print("Percent of Males who are Republican: " + str(pMaleRep*100))
+    print("Percent of Females who are Republican: " + str(pFemRep*100))
+    print("Percent of Unknown who are Republican: " + str(pUnkRep*100))
+    print("Percent of Males who are Democrats: " + str(pMaleDem*100))
+    print("Percent of Females who are Democrats: " + str(pFemDem*100))
+    print("Percent of Unknown who are Democrats: " + str(pUnkDem*100))
+    
+    #The correlation isnt high enough to make conclusions
 def getArgs():
     import argparse
     parser = argparse.ArgumentParser(description = 'CS whatever -- Homework 1 -- Thomas Conley',add_help=True)
@@ -117,5 +207,7 @@ def writeHeatmap(df, pngFilename='heatmap.png'):
     
     ##This function just prints out stuff i want to see so I know what things i put in the code
 
+def addColumn(df, colName, col):
+    df[colName] = col
 if __name__ == '__main__':
     main()
