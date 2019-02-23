@@ -17,9 +17,8 @@ def run():
     print(df.columns)
     print(df.sample(n=3))
     
-    print(movAvg([1,2,3,4,5]))
     print(movAvg1("Open", "2010-10-22",10,"qqq"))
-    
+    ## Gets the last x days moving avg
 def movAvg1(open_or_close,startDate,days,ticker):
     zf = zipfile.ZipFile('Data.zip')
     df = pd.read_csv(zf.open('ETFs/' + ticker + '.us.txt'))
@@ -37,15 +36,13 @@ def movAvg1(open_or_close,startDate,days,ticker):
             value = df.loc[df.Date == date , 'Open'].tolist()[0]
             mvavg += value
             counter += 1
+            print(mvavg)
         except:
             pass
-        date = (datetime.strptime(startDate, '%Y-%m-%d') + timedelta(daysInFuture)).strftime('%Y-%m-%d')
+        print(date)
+        date = (datetime.strptime(startDate, '%Y-%m-%d') + timedelta(-daysInFuture)).strftime('%Y-%m-%d')
     return mvavg/days
-def movAvg(arr):
-    answer = 0
-    for x in arr:
-        answer += arr[x-1]
-    return answer/len(arr)
+
 if __name__ == '__main__':
     run()
 
