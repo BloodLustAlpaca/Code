@@ -26,13 +26,17 @@ def movAvg1(open_or_close,startDate,days,ticker):
     print(type(df.loc[df.index[0],"Date"]))
     print(dfIndex)
     date = startDate
+    mvavg = 0
     for x in range (0,days):
-        mvavg = 0
-        print(df[df.Date == date].Open.item())
-        #currentDf = df[df.Date == date]
+        #find how to weekdays
+        #print('TEST:' + str(df.loc[df.Date == date , 'Open'].values[0]))
+        #while((df.loc[df.Date == date, 'Open']).empty):
+        #   date = (datetime.strptime(startDate, '%Y-%m-%d') + timedelta(days=x)).strftime('%Y-%m-%d')
+        mvavg += df.loc[df.Date == date , 'Open']      #currentDf = df[df.Date == date]
         #mvavg += currentDf.Open.tolist()[0]
         date = (datetime.strptime(startDate, '%Y-%m-%d') + timedelta(days=x)).strftime('%Y-%m-%d')
-        print(mvavg)
+        #int(np.isnan(df.loc[df.Date == date, 'Open'])
+        print()
 def movAvg(arr):
     answer = 0
     for x in arr:
