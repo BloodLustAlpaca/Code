@@ -43,10 +43,10 @@ class stock:
         return mvgAvgArray
     
     def compareAvg(self,stream1,stream2):
-        base = stream1[0] < stream2[0]
+        base = (stream1[0] < stream2[0])
+        print("BASE IS: " + str(base))
         for x in range (0,len(stream1)):
-            print(x)
-            if (base == (stream1[0] > stream2[0])):
+            if (base == (stream1[x] > stream2[x])):
                 print("crossed at: " +str(x))
                 base = not base
                 

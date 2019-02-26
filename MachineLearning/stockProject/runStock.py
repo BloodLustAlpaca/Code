@@ -16,10 +16,13 @@ def run():
     #ETFs or Stocks with /ticker.us.txt will refence the ticker needed
     df = pd.read_csv(zf.open('ETFs/qqq.us.txt'))
     qqqStock = stock(df)
-    print(qqqStock.sma("2010-10-22", 10))
-    print(qqqStock.stream_sma("2010-10-22",10,20))
-    a = qqqStock.stream_sma("2010-10-22",10,150)
-    b = qqqStock.stream_sma("2010-10-22",35,150)
+    print("Moving average for period is: " + str(qqqStock.sma("2010-10-22", 10)))
+    print("Moving average  per day for period of time: " + str(qqqStock.stream_sma("2010-10-22",10,20)))
+    a = qqqStock.stream_sma("2008-10-22",10,250)
+    b = qqqStock.stream_sma("2008-10-22",35,250)
     qqqStock.compareAvg(a,b)
+    
+    #prints tuples lined up
+    #print(list(zip(a[175:190],b[175:190])))
 if __name__ == '__main__':
     run()
