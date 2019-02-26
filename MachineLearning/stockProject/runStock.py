@@ -11,18 +11,35 @@ from stock import stock
 from datetime import datetime, timedelta
 
 def run():
-    #ZF is the zip file will all the stocks and etfs broken up into the two folders
-    zf = zipfile.ZipFile('Data.zip')
-    #ETFs or Stocks with /ticker.us.txt will refence the ticker needed
-    df = pd.read_csv(zf.open('ETFs/qqq.us.txt'))
-    qqqStock = stock(df)
-    print("Moving average for period is: " + str(qqqStock.sma("2010-10-22", 10)))
-    print("Moving average  per day for period of time: " + str(qqqStock.stream_sma("2010-10-22",10,20)))
-    a = qqqStock.stream_sma("2008-10-22",10,250)
-    b = qqqStock.stream_sma("2008-10-22",35,250)
-    qqqStock.compareAvg(a,b)
+    df = buildDf('qqq')
+    print(df.tail(10).to_string())
     
+    
+
     #prints tuples lined up
     #print(list(zip(a[175:190],b[175:190])))
+def buildDf(name,rebuild = False):
+    #this will try to load the csv file, if it doesnt exist it raises and exceptions which then 
+    #creates the csv file and frame you can force rebuild with a True parameter
+    try:
+        if(rebuild == False):
+            df = pd.read_csv(str(name) + ".csv")
+            return df
+        else:
+            raise Exception
+    except:
+        #ZF is the zip file with all the stocks and etfs broken up into the two folders
+        zf = zipfile.ZipFile('Data.zip')
+        df = pd.read_csv(zf.open('ETFs/' + name + '.us.txt'))
+        targetStock = stock(df)
+        df = targetStock.addDayCol(df)
+        df = targetStock.addMaCol(df,'MA10',10)
+        df = targetStock.addMaCol(df,'MA20',20)
+        df = targetStock.addMaCol(df,'MA50',50)
+        df = targetStock.addMaCol(df,'MA100',100)
+        df.to_csv(path_or_buf=str(name) + ".csv")
+        return df
+    
+
 if __name__ == '__main__':
     run()
