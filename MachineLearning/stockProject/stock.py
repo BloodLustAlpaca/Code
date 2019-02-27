@@ -43,14 +43,20 @@ class stock:
             currentDate = (datetime.strptime(currentDate, '%Y-%m-%d') + timedelta(days=1)).strftime('%Y-%m-%d')
         return mvgAvgArray
     
+    #this returns an array of true and false for each comparison. So if it crossed twice,
+    #you would have all falses and two trues where it crossed
     def compareAvg(self,stream1,stream2):
+        crossArray = []
         base = (stream1[0] < stream2[0])
         print("BASE IS: " + str(base))
         for x in range (0,len(stream1)):
             if (base == (stream1[x] > stream2[x])):
                 print("crossed at: " +str(x))
                 base = not base
-                
+                crossArray.append(True)
+            else:
+                crossArray.append(False)
+        return crossArray
     def addDayCol(self,df):
         if('Weekday' not in df):
             weekdayArray = []
@@ -87,8 +93,26 @@ class stock:
             return df
         df[name] = maArray
         return df
+    
+    #This adds the target column or the crossover column
+    #takes arguments of df and bigMa, bigMa is the biggest moving average 
+    #since the crossover can't count until it is calculated
+    def addTargetCol(self,df):
+        if('Target' not in df):
+            targetArray = []
+            results = self.compareAvg(df.MA10[50:].values,df.MA50[50:].values)
+            for x in df.Date[:50]:
+                targetArray.append(float('nan'))
+            results = targetArray + results
             
+            df['Target'] = results
+            return df
+                
+                
         
+        else:
+            print("col exisits already")
+            return df
                 
             
         
