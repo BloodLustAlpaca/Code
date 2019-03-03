@@ -17,72 +17,91 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn.svm import SVC
 import zipfile
 from stock import stock
+from adricsKnnTester import AdricsKNNClassifier
 from datetime import datetime, timedelta
 np.set_printoptions( threshold=np.inf,  formatter={'float_kind':'{:.2f}'.format})
 
+'''Originally I was trying to predict the moving average crossover but for the HW2 assignment I am not as far as I need to be to use 
+that target. It is a very sparse target only being true for 2% of the data. This means that if I run the models on it they will almost
+always be 98% right by never guessing 1. I decided to change to predict if the next day the stock would go up or down.
+I havent figured out the best features for this yet and only get about 53% correct best case scenario.
+'''
 def run():
-    df = buildDf('qqq')
-    df = df.drop(columns=df.columns[0])
-    #I slice off the first 50 since they are Nan
+    #df = buildDf('qqq')
+    df = buildDf('atvi')
     
-    X = df[['Open','High','Low','Close','Volume','MA10','MA50']][50:].values
-    y = df[['Target']][50:].values.astype(int)
-    Xt = X[:X.shape[0]-500]
-    yt = y[:y.shape[0]-500]
-    Xp = X[X.shape[0]-500:]
-    yp = y[y.shape[0]-500:]
+#This drops the first column which is an extra index
+
+    df = df.drop(columns=df.columns[0])
+    
+#I slice off the first 50 since they are Nan
+#start at 50 for MAcross as MA50 col doesnt start counting until 50
+#The max is len(df)-1 because to calculate updown it reads the next date, since the next one at the end is null this avoids the error
+
+    
+#X are the features I want
+#Y is the target UpDown which tries to predict based on previous close to close if the next day will go up or down
+
+    X = df[['Open','High','Low','Close','Volume','MA10','MA50']][50:len(df)-1].values
+    y = df[['UpDown']][50:len(df)-1].values.astype(int).ravel()
+    
+#This sets the training and tests automatically and makes sure features and targets are distributed well.
+
+    X_train, X_test, y_train, y_test = model_selection.train_test_split(X, y, test_size=0.2)
+
+#I make a list of models to try out, setting the seed so they are they same when ran
     seed = 7
     models = []
     models.append(('LR', LogisticRegression()))
     models.append(('LDA', LinearDiscriminantAnalysis()))
     models.append(('KNN', KNeighborsClassifier()))
+    models.append(('AdricsKnn',AdricsKNNClassifier()))
     models.append(('CART', DecisionTreeClassifier()))
     models.append(('NB', GaussianNB()))
     models.append(('SVM', SVC()))
-    
+    parameters = {'n_neighbors':[1,2,3,4,5,6,7,8,9,10]}
     results = []
     names = []
-    scoring = 'accuracy'
+    
+#this makes sure the distribution is balanced and sets up the results
     for name, model in models:
-    	kfold = model_selection.KFold(n_splits=10, random_state=seed)
-    	cv_results = model_selection.cross_val_score(model, Xt, yt.ravel(), cv=kfold, scoring=scoring)
-    	results.append(cv_results)
-    	names.append(name)
-    	msg = "%s: %f (%f)" % (name, cv_results.mean(), cv_results.std())
-    	print(msg)
-        
+        kfold = model_selection.KFold(n_splits=10, random_state=seed)
+        param_grid = parameters
+        gs = model_selection.GridSearchCV(model, param_grid,cv=kfold,scoring = 'accuracy')
+        #cv_results = model_selection.cross_val_score(model, X_train, y_train, cv=kfold, scoring='accuracy')
+        #results.append(cv_results)
+        #names.append(name)
+        #msg = "%s: %f (%f)" % (name, cv_results.mean(), cv_results.std())
+        gs.fit(X_train,y_train)
+        msg= gs.best_estimator_
+        print(msg)
+
+#This shows and compares results on a graph
     fig = plt.figure()
     fig.suptitle('Algorithm Comparison')
     ax = fig.add_subplot(111)
     plt.boxplot(results)
     ax.set_xticklabels(names)
     plt.show()
-    model = KNeighborsClassifier()
-    model.fit(Xt,yt.ravel())
-    predicted = model.predict(Xp)
-    print("PREDICTION ExtraTrees IS:::::::::::::::::::::::::\n")
+
+    
+#This is one model and testing to see the results so that they can be compared
+    model = LinearDiscriminantAnalysis()
+    model.fit(X_train,y_train)
+    predicted = model.predict(X_test)
+    print("PREDICTION LDR IS:::::::::::::::::::::::::\n")
     print(predicted)
-    print("Extra Trees actual:::::::::::::::::::")
-    print(yp.reshape((1,500)))
-    print(predicted.shape)
-    print(collections.Counter(yp.ravel()))
-#    model = KNeighborsClassifier(n_neighbors = 3)
-#    model.fit(Xt,yt.ravel())
-#    predicted = model.predict(Xp)
-#
-#    print("PREDICTION KNN IS:::::::::::::::::::::::::\n")
-#    print(predicted)
-#    print("KNN actual:::::::::::::::::::")
-#    print(yp.reshape((1,500)))
-#    print(predicted.shape)
-    
-    
-    #print(df.tail(100).to_string())
+    print("LDR actual:::::::::::::::::::")
+    print(y_test.reshape((1,len(y_test))))
+    print(collections.Counter(y_test))
+
     #prints tuples lined up
     #print(list(zip(a[175:190],b[175:190])))
+    
+#this will try to load the csv file, if it doesnt exist it raises and exceptions which then 
+#creates the csv file and frame. you can force rebuild with a True parameter
+#This makes it way faster than doing all the calculations every time.
 def buildDf(name,rebuild = False):
-    #this will try to load the csv file, if it doesnt exist it raises and exceptions which then 
-    #creates the csv file and frame you can force rebuild with a True parameter
     try:
         if(rebuild == False):
             df = pd.read_csv(str(name) + ".csv")
@@ -90,15 +109,23 @@ def buildDf(name,rebuild = False):
         else:
             raise Exception
     except:
-        #ZF is the zip file with all the stocks and etfs broken up into the two folders
+#ZF is the zip file with all the stocks and etfs broken up into the two folders "Stocks/ for stock name or ETFs/ for etf name
+#I then add the columns I think might be useful such as day of week, moving averages, targetColumn which is the cross over and the
+#updown for other testing.
         zf = zipfile.ZipFile('Data.zip')
-        df = pd.read_csv(zf.open('ETFs/' + name + '.us.txt'))
+        df = pd.read_csv(zf.open("Stocks/" +name + '.us.txt'))
         targetStock = stock(df)
+        print("adding day col")
         df = targetStock.addDayCol(df)
+        print("adding MA10 col")
         df = targetStock.addMaCol(df,'MA10',10)
+        print("adding MA50 col")
         #df = targetStock.addMaCol(df,'MA20',20)
         df = targetStock.addMaCol(df,'MA50',50)
+        print("adding Target col")
         df = targetStock.addTargetCol(df)
+        print("adding UpDown col")
+        df = targetStock.addUpDownCol(df)
         #df = targetStock.addMaCol(df,'MA100',100)
         df.to_csv(path_or_buf=str(name) + ".csv")
         return df

@@ -9,18 +9,20 @@ import numpy as np
 from datetime import datetime, timedelta,date
 import calendar
 
+#this class is my attempt at making things more clean by providing the functionality seperate from the main code and analysis
 class stock:
     def __init__(self, df):
         self.df = df
     
-    #Calculates the simple moving average by adding each open by date and dividing by days    
+#Calculates the simple moving average by adding each open by date and dividing by days
     def sma(self,startDate, amountDays,Open_Close = 'Open'):
         currentDate = startDate
         counter = 0
         mvavg = 0
         daysInPast = 0
-        #counter is incremented when a valid day is read, weekends will be skipped
-        #date adds the days in the past for the next try
+        
+#counter is incremented when a valid day is read, weekends will be skipped
+#date adds the days in the past for the next try
         while(counter < amountDays):
             daysInPast += 1
             try:
@@ -32,7 +34,9 @@ class stock:
             currentDate = (datetime.strptime(startDate, '%Y-%m-%d') + timedelta(-daysInPast)).strftime('%Y-%m-%d')
         return mvavg/amountDays
     
-    #This is to get multiple moving averages amount of days is what is sent to sma, timeperiod is how long to show
+#This is to get multiple moving averages. Amount of days is what is sent to sma, timeperiod is how long of a window to evaluate
+#so maybe 10 day moving average, stream it for a period of 90 days so that each day calculates the new average.
+#Returns array of moving averages
     def stream_sma(self, startDate, amountDays, timePeriod ):
         currentDate = startDate
         mvgAvgArray = [] 
@@ -43,8 +47,8 @@ class stock:
             currentDate = (datetime.strptime(currentDate, '%Y-%m-%d') + timedelta(days=1)).strftime('%Y-%m-%d')
         return mvgAvgArray
     
-    #this returns an array of true and false for each comparison. So if it crossed twice,
-    #you would have all falses and two trues where it crossed
+#This returns an array of true and false for each comparison. So if it crossed twice,
+#you would have all falses and two trues where it crossed. Returns the array of true falses relating to crosses
     def compareAvg(self,stream1,stream2):
         crossArray = []
         base = (stream1[0] < stream2[0])
@@ -57,6 +61,8 @@ class stock:
             else:
                 crossArray.append(False)
         return crossArray
+
+#This adds a column of days of the week to the DF and then returns the DF
     def addDayCol(self,df):
         if('Weekday' not in df):
             weekdayArray = []
@@ -67,6 +73,9 @@ class stock:
         else:
             print("Weekday array already exists")
             return df
+
+#This adds a column of Moving averages based on the period you send it, example 10 would be 10day MA
+#Returns the DF with new column added
     def addMaCol(self,df,name,period, Open_Close = 'Open'):
         print("in addmaCol")
         if(name not in df):
@@ -77,7 +86,6 @@ class stock:
                 for x in df.Date[period:]:
                     #print("on day: " + str(x))
                     maArray.append(self.sma(x,period))
-
             elif(Open_Close == 'Close'):
                 for x in df.Date:
                     for x in df.Date[:period]:
@@ -94,9 +102,11 @@ class stock:
         df[name] = maArray
         return df
     
-    #This adds the target column or the crossover column
-    #takes arguments of df and bigMa, bigMa is the biggest moving average 
-    #since the crossover can't count until it is calculated
+#This adds the target column or the crossover column
+#takes arguments of df and bigMa, bigMa is the biggest moving average 
+#since the crossover can't count until it is calculated
+#This will have Nans from 0-bigMa
+#Returns DF with new column added
     def addTargetCol(self,df):
         if('Target' not in df):
             targetArray = []
@@ -104,15 +114,28 @@ class stock:
             for x in df.Date[:50]:
                 targetArray.append(float('nan'))
             results = targetArray + results
-            
             df['Target'] = results
             return df
-                
-                
-        
         else:
             print("col exisits already")
             return df
+
+#This adds a column of days the market went up and down. It looks at the next day and compares it with the current day, if the next
+#day is bigger it puts True.
+#this returns the DF with added column
+    def addUpDownCol(self,df):
+        if('UpDown' not in df):
+            upDownArr = []
+            for x in range (0,len(df.Close)-1):
+                if(df.Close[x+1] > df.Close[x]):
+                    upDownArr.append(True)
+                else:
+                    upDownArr.append(False)
+            upDownArr.append(float('nan'))
+            df['UpDown'] = upDownArr
+            return df
+        else:
+            print("col already exisits")
                 
             
         
