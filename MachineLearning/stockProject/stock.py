@@ -49,18 +49,34 @@ class stock:
     
 #This returns an array of true and false for each comparison. So if it crossed twice,
 #you would have all falses and two trues where it crossed. Returns the array of true falses relating to crosses
-    def compareAvg(self,stream1,stream2):
-        crossArray = []
-        base = (stream1[0] < stream2[0])
-        print("BASE IS: " + str(base))
-        for x in range (0,len(stream1)):
-            if (base == (stream1[x] > stream2[x])):
-                print("crossed at: " +str(x))
-                base = not base
-                crossArray.append(True)
-            else:
-                crossArray.append(False)
-        return crossArray
+    def compareAvg(self,stream1,stream2,crossOpt = 0):
+        if(crossOpt == 0):
+            crossArray = []
+            base = (stream1[0] < stream2[0])
+            print("BASE IS: " + str(base))
+            for x in range (0,len(stream1)):
+                if (base == (stream1[x] > stream2[x])):
+                    print("crossed at: " +str(x))
+                    base = not base
+                    crossArray.append(True)
+                else:
+                    crossArray.append(False)
+            return crossArray
+        elif(crossOpt == 1):
+            crossArray = []
+            base = (stream1[0] < stream2[0])
+            print("BASE IS: " + str(base))
+            for x in range (0,len(stream1)):
+                if (base == (stream1[x] > stream2[x])):
+                    if(stream1[x] > stream2[x]):
+                        crossArray.append(1)
+                    else:
+                        crossArray.append(-1)
+                    print("crossed at: " +str(x))
+                    base = not base
+                else:
+                    crossArray.append(0)
+            return crossArray
 
 #This adds a column of days of the week to the DF and then returns the DF
     def addDayCol(self,df):
@@ -137,6 +153,13 @@ class stock:
         else:
             print("col already exisits")
                 
-            
+    def addCrossUpCrossDownCols(self,df):
+        targetArray = []
+        results = self.compareAvg(df.MA10[50:].values,df.MA50[50:].values,1)
+        for x in df.Date[:50]:
+            targetArray.append(float('nan'))
+        results = targetArray + results
+        df['CrossUpCrossDown'] = results
+        return df
         
                         
