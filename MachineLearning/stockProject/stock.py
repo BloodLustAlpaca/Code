@@ -154,12 +154,29 @@ class stock:
             print("col already exisits")
                 
     def addCrossUpCrossDownCols(self,df):
-        targetArray = []
-        results = self.compareAvg(df.MA10[50:].values,df.MA50[50:].values,1)
-        for x in df.Date[:50]:
-            targetArray.append(float('nan'))
-        results = targetArray + results
-        df['CrossUpCrossDown'] = results
-        return df
-        
-                        
+        if('CrossUpCrossDown' not in df):
+            targetArray = []
+            results = self.compareAvg(df.MA10[50:].values,df.MA50[50:].values,1)
+            for x in df.Date[:50]:
+                targetArray.append(float('nan'))
+            results = targetArray + results
+            df['CrossUpCrossDown'] = results
+            return df
+        else:
+            print("col already exisits")
+            return df
+#    def add52WeekHighAndLow(self, df):
+#        if('52WeekHighAndLow' not in df):
+#            high = []
+#            low = []
+#            for x in  range(0,len(self.df)):
+#                if (not low):
+#                    low.append(self.df.Close[x])
+#                else:
+#                    low.append(low[-1])
+#            for x in  range(0,len(self.df)):
+#                if (not high or (self.df.High[x] > self.df.High[x-1])):
+#                    low.append(self.df.High[x])
+#                else:
+#                    low.append(high[-1])                    
+#                        
