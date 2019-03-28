@@ -15,6 +15,8 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.naive_bayes import GaussianNB
 from sklearn.svm import SVC
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.feature_selection import RFECV
 import zipfile
 from stock import stock
 from adricsKnnTester import AdricsKNNClassifier
@@ -52,12 +54,17 @@ def run():
 
 
 
-
-
+    ###Feature selection
+    print("Feature selection")
+    selection = RFECV(RandomForestClassifier(),scoring='accuracy')
+    print(selection.fit(X_train,y_train))
+    print(selection.score(X_train,y_train))
+    print(selection.support_)
 
 #I make a list of models to try out, setting the seed so they are they same when ran
     models = []
     models.append(('LR', LogisticRegression()))
+    models.append(('RF', RandomForestClassifier()))
     models.append(('LDA', LinearDiscriminantAnalysis()))
     models.append(('KNN', KNeighborsClassifier()))
 #I commented out my classifier because it takes like 15 min to run. feel free to try it out though. I didnt set the random seed so it will
@@ -115,15 +122,15 @@ def run():
     
     #########   KERAS network
 
-    model = Sequential()
-    model.add(Dense(12,input_dim=7,activation='relu'))
-    model.add(Dense(8,activation='relu'))
-    model.add(Dense(1,activation='sigmoid'))
-    model.compile(loss='binary_crossentropy',optimizer='adam',metrics=['accuracy'])
-    model.fit(X_train,y_train,epochs=150,batch_size=10)
-    scores = model.evaluate(X_train, y_train)
-    print("\n%s: %.2f%%" % (model.metrics_names[1], scores[1]*100))
-    print(y_test)
+#    model = Sequential()
+#    model.add(Dense(12,input_dim=7,activation='relu'))
+#    model.add(Dense(8,activation='relu'))
+#    model.add(Dense(1,activation='sigmoid'))
+#    model.compile(loss='binary_crossentropy',optimizer='adam',metrics=['accuracy'])
+#    model.fit(X_train,y_train,epochs=150,batch_size=10)
+#    scores = model.evaluate(X_train, y_train)
+#    print("\n%s: %.2f%%" % (model.metrics_names[1], scores[1]*100))
+#    print(y_test)
     
     
 #this will try to load the csv file, if it doesnt exist it raises and exceptions which then 
