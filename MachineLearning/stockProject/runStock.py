@@ -20,6 +20,9 @@ from stock import stock
 from adricsKnnTester import AdricsKNNClassifier
 from account import Account
 from datetime import datetime, timedelta
+from keras.models import Sequential
+from keras.layers import Dense
+np.random.seed(7)
 np.set_printoptions( threshold=np.inf,  formatter={'float_kind':'{:.2f}'.format})
 
 '''Originally I was trying to predict the moving average crossover but for the HW2 assignment I am not as far as I need to be to use 
@@ -34,17 +37,7 @@ def run():
 #This drops the first column which is an extra index
     df = df.drop(columns=df.columns[0])
     #print(df.tail(50).to_string())
-    account1 = Account(df)
-    print("Starting balance is: " + str(account1.balance))
-    account1.buySellOnCross()
-    print("Ending balance is: " + str(account1.balance))
-    buyonma = account1.balance
-    account1 = Account(df)
-    print("Starting balance is: " + str(account1.balance))
-    account1.buyAndHold()
-    print("Ending balance is: " + str(account1.balance))
-    buyhold = account1.balance
-    print("Buy on Ma value ${} vs buy and hold value ${}".format(buyonma,buyhold))
+
     
 #I slice off the first 50 since they are Nan
 #start at 50 for MAcross as MA50 col doesnt start counting until 50
@@ -56,6 +49,11 @@ def run():
     
 #This sets the training and tests automatically and makes sure features and targets are distributed well.
     X_train, X_test, y_train, y_test = model_selection.train_test_split(X, y, test_size=0.2)
+
+
+
+
+
 
 #I make a list of models to try out, setting the seed so they are they same when ran
     models = []
@@ -113,6 +111,20 @@ def run():
 
     #prints tuples lined up
     #print(list(zip(a[175:190],b[175:190])))
+    
+    
+    #########   KERAS network
+
+    model = Sequential()
+    model.add(Dense(12,input_dim=7,activation='relu'))
+    model.add(Dense(8,activation='relu'))
+    model.add(Dense(1,activation='sigmoid'))
+    model.compile(loss='binary_crossentropy',optimizer='adam',metrics=['accuracy'])
+    model.fit(X_train,y_train,epochs=150,batch_size=10)
+    scores = model.evaluate(X_train, y_train)
+    print("\n%s: %.2f%%" % (model.metrics_names[1], scores[1]*100))
+    print(y_test)
+    
     
 #this will try to load the csv file, if it doesnt exist it raises and exceptions which then 
 #creates the csv file and frame. you can force rebuild with a True parameter
