@@ -23,7 +23,7 @@ from adricsKnnTester import AdricsKNNClassifier
 from account import Account
 from datetime import datetime, timedelta
 from keras.models import Sequential
-from keras.layers import Dense
+from keras.layers import Dense, Dropout, Activation
 np.random.seed(7)
 np.set_printoptions( threshold=np.inf,  formatter={'float_kind':'{:.2f}'.format})
 
@@ -35,12 +35,19 @@ I havent figured out the best features for this yet and only get about 53% corre
 def run():
     df = buildDf('qqq')
     #df = buildDf('atvi')
-    
-#This drops the first column which is an extra index
+    #This drops the first column which is an extra index
     df = df.drop(columns=df.columns[0])
-    #print(df.tail(50).to_string())
-
+    df['seq']=df.index
+    import seaborn as sns
+    fig,ax=plt.subplots()
+    sns.regplot(x='seq',y='Close',data=df,lowess=True)
     
+
+    #print(df.tail(50).to_string())
+    df['Volatility']=(df['Close']-df['Open'])/df['Volume']
+    fig,ax=plt.subplots()
+    sns.heatmap(df.corr(),cmap='Blues')
+
 #I slice off the first 50 since they are Nan
 #start at 50 for MAcross as MA50 col doesnt start counting until 50
 #The max is len(df)-1 because to calculate updown it reads the next date, since the next one at the end is null this avoids the error
@@ -57,9 +64,10 @@ def run():
     ###Feature selection
     print("Feature selection")
     selection = RFECV(RandomForestClassifier(),scoring='accuracy')
-    print(selection.fit(X_train,y_train))
-    print(selection.score(X_train,y_train))
+    selection.fit_transform(X_train,y_train)
     print(selection.support_)
+    
+
 
 #I make a list of models to try out, setting the seed so they are they same when ran
     models = []
@@ -107,14 +115,14 @@ def run():
 
     
 #This is one model and testing to see the results so that they can be compared and predicts with clean data
-    model = LinearDiscriminantAnalysis()
-    model.fit(X_train,y_train)
-    predicted = model.predict(X_test)
-    print("PREDICTION LDR IS:::::::::::::::::::::::::\n")
-    print(predicted)
-    print("LDR actual:::::::::::::::::::")
-    print(y_test.reshape((1,len(y_test))))
-    print(collections.Counter(y_test))
+#    model = LinearDiscriminantAnalysis()
+#    model.fit(X_train,y_train)
+#    predicted = model.predict(X_test)
+#    print("PREDICTION LDR IS:::::::::::::::::::::::::\n")
+#    print(predicted)
+#    print("LDR actual:::::::::::::::::::")
+#    print(y_test.reshape((1,len(y_test))))
+#    print(collections.Counter(y_test))
 
     #prints tuples lined up
     #print(list(zip(a[175:190],b[175:190])))
@@ -122,15 +130,16 @@ def run():
     
     #########   KERAS network
 
-#    model = Sequential()
-#    model.add(Dense(12,input_dim=7,activation='relu'))
-#    model.add(Dense(8,activation='relu'))
-#    model.add(Dense(1,activation='sigmoid'))
-#    model.compile(loss='binary_crossentropy',optimizer='adam',metrics=['accuracy'])
-#    model.fit(X_train,y_train,epochs=150,batch_size=10)
-#    scores = model.evaluate(X_train, y_train)
-#    print("\n%s: %.2f%%" % (model.metrics_names[1], scores[1]*100))
-#    print(y_test)
+    model = Sequential()
+    model.add(Dense(12,input_dim=7,activation='relu'))
+    model.add(Dropout(.3))
+    model.add(Dense(8,activation='relu'))
+    model.add(Dense(1,activation='sigmoid'))
+    model.compile(loss='binary_crossentropy',optimizer='adam',metrics=['accuracy'])
+    model.fit(X_train,y_train,epochs=50,batch_size=10)
+    scores = model.evaluate(X_train, y_train)
+    print("\n%s: %.2f%%" % (model.metrics_names[1], scores[1]*100))
+    #print(y_test)
     
     
 #this will try to load the csv file, if it doesnt exist it raises and exceptions which then 
