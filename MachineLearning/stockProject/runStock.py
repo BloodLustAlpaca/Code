@@ -24,7 +24,7 @@ from account import Account
 from datetime import datetime, timedelta
 from keras.models import Sequential
 from keras.layers import Dense, Dropout, Activation
-np.random.seed(7)
+#np.random.seed(7)
 np.set_printoptions( threshold=np.inf,  formatter={'float_kind':'{:.2f}'.format})
 
 '''Originally I was trying to predict the moving average crossover but for the HW2 assignment I am not as far as I need to be to use 
@@ -140,7 +140,7 @@ def run():
     scores = model.evaluate(X_test, y_test)
     print("\n%s: %.2f%%" % (model.metrics_names[1], scores[1]*100))
     #print(y_test)
-    
+    pd.scatter_matrix(df)
     
 #this will try to load the csv file, if it doesnt exist it raises and exceptions which then 
 #creates the csv file and frame. you can force rebuild with a True parameter
