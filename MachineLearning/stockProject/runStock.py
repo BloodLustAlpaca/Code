@@ -81,7 +81,7 @@ def run():
     models.append(('CART', DecisionTreeClassifier()))
     models.append(('NB', GaussianNB()))
     #models.append(('SVM', SVC()))
-    parameters = {'n_neighbors':[6,7,8,9],'K':[6,7,8], 'C':[.0001,.001,.01,.1,1,10,100],'max_depth':[3,4,5,6,7,8],'gamma':[.0001,.001,.01,.1]}
+    parameters = {'n_components':[None,1,2],'n_neighbors':[6,7,8,9],'K':[6,7,8], 'C':[.0001,.001,.01,.1,1,10,100],'max_depth':[3,4,5,6,7,8],'gamma':[.0001,.001,.01,.1]}
     results = []
     names = []
     
@@ -136,8 +136,8 @@ def run():
     model.add(Dense(8,activation='relu'))
     model.add(Dense(1,activation='sigmoid'))
     model.compile(loss='binary_crossentropy',optimizer='adam',metrics=['accuracy'])
-    model.fit(X_train,y_train,epochs=50,batch_size=10)
-    scores = model.evaluate(X_train, y_train)
+    model.fit(X_train,y_train,epochs=20,batch_size=10)
+    scores = model.evaluate(X_test, y_test)
     print("\n%s: %.2f%%" % (model.metrics_names[1], scores[1]*100))
     #print(y_test)
     
