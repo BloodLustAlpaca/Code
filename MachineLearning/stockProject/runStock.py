@@ -4,6 +4,7 @@ Created on Mon Feb  4 09:50:20 2019
 
 @author: drumm
 """
+import tensorflow as tf
 import pandas as pd 
 import numpy as np
 import collections
@@ -24,7 +25,8 @@ from account import Account
 from datetime import datetime, timedelta
 from keras.models import Sequential
 from keras.layers import Dense, Dropout, Activation
-#np.random.seed(7)
+
+np.random.seed(7)
 np.set_printoptions( threshold=np.inf,  formatter={'float_kind':'{:.2f}'.format})
 
 '''Originally I was trying to predict the moving average crossover but for the HW2 assignment I am not as far as I need to be to use 
@@ -47,7 +49,6 @@ def run():
     df['Volatility']=(df['Close']-df['Open'])/df['Volume']
     fig,ax=plt.subplots()
     sns.heatmap(df.corr(),cmap='Blues')
-
 #I slice off the first 50 since they are Nan
 #start at 50 for MAcross as MA50 col doesnt start counting until 50
 #The max is len(df)-1 because to calculate updown it reads the next date, since the next one at the end is null this avoids the error
@@ -129,18 +130,25 @@ def run():
     
     
     #########   KERAS network
+    ##Trying normalize data for keras network
 
-    model = Sequential()
-    model.add(Dense(12,input_dim=7,activation='relu'))
-    model.add(Dropout(.3))
-    model.add(Dense(8,activation='relu'))
-    model.add(Dense(1,activation='sigmoid'))
-    model.compile(loss='binary_crossentropy',optimizer='adam',metrics=['accuracy'])
-    model.fit(X_train,y_train,epochs=20,batch_size=10)
-    scores = model.evaluate(X_test, y_test)
-    print("\n%s: %.2f%%" % (model.metrics_names[1], scores[1]*100))
+    X_train =tf.keras.utils.normalize(X_train, axis =1)
+    X_test= tf.keras.utils.normalize(X_test, axis=1)
+    
+    modelN = tf.keras.models.Sequential()
+    modelN.add(tf.keras.layers.Flatten())
+    modelN.add(tf.keras.layers.Dense(128,input_dim=7,activation=tf.nn.relu))
+    modelN.add(tf.keras.layers.Dropout(.2))
+    modelN.add(tf.keras.layers.Dense(128,activation=tf.nn.relu))
+    modelN.add(tf.keras.layers.Dense(1,activation=tf.nn.sigmoid))
+    modelN.compile(loss='binary_crossentropy',optimizer='adam',metrics=['accuracy'])
+    modelN.fit(X_train,y_train,epochs=8)
+    val_loss, val_acc = modelN.evaluate(X_test, y_test)
+    print(val_loss, val_acc)
     #print(y_test)
-    pd.scatter_matrix(df)
+    
+    ##plots scatter matrix
+    #pd.scatter_matrix(df)
     
 #this will try to load the csv file, if it doesnt exist it raises and exceptions which then 
 #creates the csv file and frame. you can force rebuild with a True parameter
