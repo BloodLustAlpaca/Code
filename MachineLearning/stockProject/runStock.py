@@ -25,7 +25,7 @@ from account import Account
 from datetime import datetime, timedelta
 from keras.models import Sequential
 from keras.layers import Dense, Dropout, Activation
-
+from tensorflow.keras.callbacks import TensorBoard
 np.random.seed(7)
 np.set_printoptions( threshold=np.inf,  formatter={'float_kind':'{:.2f}'.format})
 
@@ -58,7 +58,7 @@ def run():
     y = df[['UpDown']][50:len(df)-1].values.astype(int).ravel()
     
 #This sets the training and tests automatically and makes sure features and targets are distributed well.
-    X_train, X_test, y_train, y_test = model_selection.train_test_split(X, y, test_size=0.2)
+    X_train, X_test, y_train, y_test = model_selection.train_test_split(X, y, test_size=0.1)
 
 
 
@@ -131,6 +131,8 @@ def run():
     
     #########   KERAS network
     ##Trying normalize data for keras network
+    NAME= "StockPredict"
+    tensorboard= TensorBoard(log_dir='logs/{}'.format(NAME))
 
     X_train =tf.keras.utils.normalize(X_train, axis =1)
     X_test= tf.keras.utils.normalize(X_test, axis=1)
@@ -142,7 +144,7 @@ def run():
     modelN.add(tf.keras.layers.Dense(128,activation=tf.nn.relu))
     modelN.add(tf.keras.layers.Dense(1,activation=tf.nn.sigmoid))
     modelN.compile(loss='binary_crossentropy',optimizer='adam',metrics=['accuracy'])
-    modelN.fit(X_train,y_train,epochs=8)
+    modelN.fit(X_train,y_train,epochs=8, callbacks=[tensorboard], validation_split =.1)
     val_loss, val_acc = modelN.evaluate(X_test, y_test)
     print(val_loss, val_acc)
     #print(y_test)
