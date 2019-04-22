@@ -1,0 +1,42 @@
+Problem 12.4 When you arrive at the pub, your five friends already have their drinks on
+the table. Jim has a job and buys the round half of the time. Jane buys the round a
+quarter of the time, and Sarah and Simon buy a round one eighth of the time. John
+hasn’t got his wallet out since you met him three years ago.
+Compute the entropy of each of them buying the round and work out how many
+questions you need to ask (on average) to find out who bought the round.
+Two more friends now arrive and everybody spontaneously decides that it is your turn
+to buy a round (for all eight of you). Your friends set you the challenge of deciding
+who is drinking beer and who is drinking vodka according to their gender, whether or
+not they are students, and whether they went to the pub last night. Use ID3 to work
+it out, and then see if you can prune the tree.
+
+Drink Gender Student Pub last night
+Beer 	T 	T 	T
+Beer 	T	F	T
+Vodka 	T 	F 	F
+Vodka 	T 	F 	F
+Vodka 	F 	T 	T
+Vodka 	F 	F 	F
+Vodka 	F 	T 	T
+Vodka 	F 	T 	T
+
+
+P1: Calculate entropy
+E=-p*log2(p)
+
+Jim:-(1/2)*log2(1/2)=.5
+Jane:-(1/4)*log2(1/4)=.5
+Sarah:-(1/8)*log2*(1/8) =.375
+Simon:-(1/8)*log2(1/8)=.375
+Jon:0*log2(0)=0
+
+3 or less questions, usually asking if Jim bought is enough. If not him Jane probably bought
+
+Entropy
+Drink(beer vodka true beer false): .811
+Entropy by feature
+Gender: 1
+Student:1
+Pub:.954
+
+We Can trim Student, We can find out if they drank vodka by asking if they went to the publast night and gender. If Gender:T and pub:T then they got beer else vodka
