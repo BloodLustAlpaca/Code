@@ -56,7 +56,7 @@ def run():
 #Y is the target UpDown which tries to predict based on previous close to close if the next day will go up or down
     X = df[['Open','High','Low','Close','Volume','MA10','MA50']][50:len(df)-1].values
     y = df[['UpDown']][50:len(df)-1].values.astype(int).ravel()
-    
+
 #This sets the training and tests automatically and makes sure features and targets are distributed well.
     X_train, X_test, y_train, y_test = model_selection.train_test_split(X, y, test_size=0.1)
 
@@ -129,28 +129,9 @@ def run():
     #print(list(zip(a[175:190],b[175:190])))
     
     
-    #########   KERAS network
-    ##Trying normalize data for keras network
-    NAME= "StockPredict"
-    tensorboard= TensorBoard(log_dir='logs/{}'.format(NAME))
 
-    X_train =tf.keras.utils.normalize(X_train, axis =1)
-    X_test= tf.keras.utils.normalize(X_test, axis=1)
-    
-    modelN = tf.keras.models.Sequential()
-    modelN.add(tf.keras.layers.Flatten())
-    modelN.add(tf.keras.layers.Dense(128,input_dim=7,activation=tf.nn.relu))
-    modelN.add(tf.keras.layers.Dropout(.2))
-    modelN.add(tf.keras.layers.Dense(128,activation=tf.nn.relu))
-    modelN.add(tf.keras.layers.Dense(1,activation=tf.nn.sigmoid))
-    modelN.compile(loss='binary_crossentropy',optimizer='adam',metrics=['accuracy'])
-    modelN.fit(X_train,y_train,epochs=8, callbacks=[tensorboard], validation_split =.1)
-    val_loss, val_acc = modelN.evaluate(X_test, y_test)
-    print(val_loss, val_acc)
-    #print(y_test)
-    
-    ##plots scatter matrix
-    #pd.scatter_matrix(df)
+    neuro1(X_train,X_test,y_train,y_test)
+
     
 #this will try to load the csv file, if it doesnt exist it raises and exceptions which then 
 #creates the csv file and frame. you can force rebuild with a True parameter
@@ -182,10 +163,41 @@ def buildDf(name,rebuild = False):
         df = targetStock.addUpDownCol(df)
         print("adding crossUpCrossDownCols")
         df = targetStock.addCrossUpCrossDownCols(df)
-        #df = targetStock.addMaCol(df,'MA100',100)
+        #df = targetStock.addMaCol(df,'M,A100',100)
         df.to_csv(path_or_buf=str(name) + ".csv")
         return df
     
+    ####
+    ####
+    #This is a binary network( predicts up or down)
+def neuro1(X_train,X_test,y_train,y_test):
+    #########   KERAS network
+    ##Trying normalize data for keras network
+    NAME= "StockPredict"
+    tensorboard= TensorBoard(log_dir='logs/{}'.format(NAME))
 
+    X_train =tf.keras.utils.normalize(X_train, axis =1)
+    X_test= tf.keras.utils.normalize(X_test, axis=1)
+    
+    modelN = tf.keras.models.Sequential()
+    modelN.add(tf.keras.layers.Flatten())
+    modelN.add(tf.keras.layers.Dense(128,input_dim=7,activation=tf.nn.relu))
+    modelN.add(tf.keras.layers.Dropout(.2))
+    modelN.add(tf.keras.layers.Dense(128,activation=tf.nn.relu))
+    modelN.add(tf.keras.layers.Dense(1,activation=tf.nn.sigmoid))
+    modelN.compile(loss='binary_crossentropy',optimizer='adam',metrics=['accuracy'])
+    modelN.fit(X_train,y_train,epochs=8, callbacks=[tensorboard], validation_split =.1)
+    val_loss, val_acc = modelN.evaluate(X_test, y_test)
+    print("Loss:{}, Acc:{}".format(val_loss, val_acc))
+    #print(y_test)
+    
+    ##plots scatter matrix
+    #pd.scatter_matrix(df)
+    
+    
+    ####
+    ##predicts price
+def neuro2(x_train,X_test,y_train,y_test):
+    pass
 if __name__ == '__main__':
     run()
