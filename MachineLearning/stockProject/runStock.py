@@ -54,20 +54,25 @@ def run():
 #The max is len(df)-1 because to calculate updown it reads the next date, since the next one at the end is null this avoids the error
 #X are the features I want
 #Y is the target UpDown which tries to predict based on previous close to close if the next day will go up or down
-    X = df[['Open','High','Low','Close','Volume','MA10','MA50']][50:len(df)-1].values
+    X = df[['Open','High','Low','Close','Volume','MA10','MA50','Volatility','CrossUpCrossDown']][50:len(df)-1].values
     y = df[['UpDown']][50:len(df)-1].values.astype(int).ravel()
 
 #This sets the training and tests automatically and makes sure features and targets are distributed well.
     X_train, X_test, y_train, y_test = model_selection.train_test_split(X, y, test_size=0.1)
 
 
-
+    print("y_test:" + str(collections.Counter(y_test)))
+    print("y_train" + str(collections.Counter(y_test)))
     ###Feature selection
-    print("Feature selection")
-    selection = RFECV(RandomForestClassifier(),scoring='accuracy')
+    print("Feature selection LDA")
+    selection = RFECV(LinearDiscriminantAnalysis(),scoring='accuracy')
     selection.fit_transform(X_train,y_train)
     print(selection.support_)
     
+    print("Feature selection CART")
+    selection = RFECV(LinearDiscriminantAnalysis    (),scoring='accuracy')
+    selection.fit_transform(X_train,y_train)
+    print(selection.support_)
 
 
 #I make a list of models to try out, setting the seed so they are they same when ran
@@ -116,17 +121,33 @@ def run():
 
     
 #This is one model and testing to see the results so that they can be compared and predicts with clean data
-#    model = LinearDiscriminantAnalysis()
-#    model.fit(X_train,y_train)
-#    predicted = model.predict(X_test)
-#    print("PREDICTION LDR IS:::::::::::::::::::::::::\n")
-#    print(predicted)
-#    print("LDR actual:::::::::::::::::::")
-#    print(y_test.reshape((1,len(y_test))))
-#    print(collections.Counter(y_test))
-
-    #prints tuples lined up
-    #print(list(zip(a[175:190],b[175:190])))
+    print("LinearDiscriminantAnalysis")
+    model = LinearDiscriminantAnalysis(n_components=None)
+    model.fit(X_train,y_train)
+    predicted = model.predict(X_test)
+    print("PREDICTION LDR IS:::::::::::::::::::::::::\n")
+    print(predicted)
+    print("LDR actual:::::::::::::::::::")
+    print(y_test.reshape((1,len(y_test))))
+    print(collections.Counter(y_test))
+    error = np.mean(predicted != y_test)
+    print("Accuracy: " + str(1-error))
+    
+    print("Cart")
+    model = DecisionTreeClassifier(max_depth=3)
+    model.fit(X_train,y_train)
+    predicted = model.predict(X_test)
+    print("PREDICTION LDR IS:::::::::::::::::::::::::\n")
+    print(predicted)
+    print("LDR actual:::::::::::::::::::")
+    print(y_test.reshape((1,len(y_test))))
+    print(collections.Counter(y_test))
+    error = np.mean(predicted != y_test)
+    print("Accuracy: " + str(1-error))
+    
+#
+#    prints tuples lined up
+#    print(list(zip(a[175:190],b[175:190])))
     
     
 
